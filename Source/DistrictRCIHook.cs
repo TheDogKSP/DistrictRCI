@@ -3,18 +3,24 @@ using ICities;
 using ColossalFramework;
 using ColossalFramework.UI;
 using UnityEngine;
+using System.Timers;
 
 namespace DistrictRCI
 {
 	public class DistrictRCIHook : ILoadingExtension{
 
 		static UIPanel m_panel;
-		static UITextField m_distictName;
 		static UISlicedSprite m_demandSprite;
 
 		public void OnCreated(ILoading loading){
-			DestroyOld ("DistrictDemand");
-			HookGUI ();
+			DestroyOld ("DistrictRCIDemand");
+			var timer = new Timer (10000); //delays GUI hook so other mods such as Building Themes can do its thing
+			timer.Elapsed += (object sender, ElapsedEventArgs e) => {
+				HookGUI();
+				timer.Enabled = false;
+				timer.Dispose();
+			};
+			timer.Enabled = true;
 		}
 
 		public void OnLevelLoaded(LoadMode mode){
@@ -22,41 +28,58 @@ namespace DistrictRCI
 				return;
 			}
 			Debug.Print ("OnLevelLoaded()");
-			DestroyOld ("DistrictDemand");
-			HookGUI (); 
+			DestroyOld ("DistrictRCIDemand");
+			var timer = new Timer (10000); //delays GUI hook so other mods such as Building Themes can do its thing
+			timer.Elapsed += (object sender, ElapsedEventArgs e) => {
+				HookGUI();
+				timer.Enabled = false;
+				timer.Dispose();
+			};
+
+			timer.Enabled = true;
 		}
 
 		private void DestroyOld(string name){
 			while (true) {
 				try{
-					GameObject.DestroyImmediate (UIView.Find (name).gameObject);
+					GameObject.DestroyImmediate (UIView.Find(name).gameObject);
 					Debug.Print ("Destroyed");
-				}catch(Exception){
-					
+				}catch{					
 					break;
 				}
 			}
 		}
 
 		private void HookGUI(){
-			m_distictName = UIView.Find<UITextField>("DistrictName");
-			m_panel = (UIPanel)m_distictName.parent.parent;
+			//m_distictName = UIView.Find<UITextField>("DistrictName");
+			Debug.Print("Hooking");
+			m_panel = (UIPanel)UIView.Find<UITextField>("DistrictName").parent.parent;
+			//m_panel = UIView.Find<UIPanel>("(Library) ZonedBuildingWorldInfoPanel");
 			Debug.Print (m_panel.cachedName);
-			m_demandSprite = (UISlicedSprite)GameObject.Instantiate(UIView.Find<UISlicedSprite>("DemandBack"));
-			m_demandSprite.name = "DistrictDemand";
-			m_demandSprite.cachedName = "DistrictDemand";
+			m_demandSprite = (UISlicedSprite)GameObject.Instantiate(UIView.Find<UISlicedSprite> ("DemandBack"));
+
+			m_demandSprite.name = "DistrictRCIDemand";
+			m_demandSprite.cachedName = "DistrictRCIDemand";
 			m_demandSprite.Show();
 
 			m_panel.AttachUIComponent(m_demandSprite.gameObject);
 			m_demandSprite.relativePosition = new Vector3(m_panel.width - m_demandSprite.width - 10f,m_panel.height - m_demandSprite.height - 24f);
-			m_panel.eventVisibilityChanged += (component, value) => {Update(m_distictName.rawText);};
-			m_distictName.eventTextChanged += (component, value) => {Update(value);};
-
+			m_panel.eventVisibilityChanged += (component, value) => {Update();};
+			//m_panel.eventAnchorChanged += (component, value) => {Update();};
+			//m_panel.eventPositionChanged += (component, value) => {Update();};
+			//m_panel.eventMouseMove += (component, value) => {Update();};
+			UIView.Find<UITextField> ("DistrictName").eventTextChanged += (component, value) => {Update();};
 		}
 
-		private void Update(string value){
+		private void Update(){
+			Debug.Print ("Update");
+			Debug.Print (m_demandSprite.absolutePosition);
+
+			Debug.Print (m_panel.absolutePosition);
+			//m_demandSprite.absolutePosition = Vector3.zero;
 			m_demandSprite.relativePosition = new Vector3(m_panel.width - m_demandSprite.width - 10f,m_panel.height - m_demandSprite.height - 24f);
-			SetDemands (GetDistrict (value));
+
+			SetDemands (GetDistrict());
 		}
 
 		private void SetDemands(District district){
@@ -106,25 +129,35 @@ namespace DistrictRCI
 			return Mathf.Clamp(demand, 0, 100);
 		}
 
-		private District GetDistrict(string name){
+		//private District GetDistrict(string name){
+		private District GetDistrict(){
+			var districtID = ToolsModifierControl.policiesPanel.targetDistrict;
 			DistrictManager manager = Singleton<DistrictManager>.instance;
-			int i = 0;
-			while(i < 128){
-				string districtName = manager.GetDistrictName (i);
-				if (districtName != null) {
-					if (districtName != null && districtName.Equals (name)) {
-						return manager.m_districts.m_buffer [i];
-					}
-				}
-				i++;
+			try{
+				return manager.m_districts.m_buffer[districtID];
+			}catch(Exception){
+				Debug.Print ("Something went wrong trying to return district of ID: " + districtID.ToString());
 			}
+			//int i = 0;
+			//while(i < 128){
+			//	string districtName = manager.GetDistrictName(i);
+			//	if (districtName != null) {
+			//		if (districtName != null && districtName.Equals (name)) {
+			//			return manager.m_districts.m_buffer [i];
+			//		}
+			//	}
+			//	i++;
+			//}
 			return manager.m_districts.m_buffer[0]; 
 		}
 
 		public void OnReleased(){
 			Debug.Print ("Released");
-
+			try{
 			m_panel.RemoveUIComponent (m_demandSprite);
+			}catch{
+			
+			}
 		}
 		public void OnLevelUnloading(){}
 	}
