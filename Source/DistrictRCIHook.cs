@@ -50,31 +50,40 @@ namespace DistrictRCI
 			}
 		}
 
+        public class DistrictRCIException : Exception
+        {
+            public DistrictRCIException(string msg) : base(msg) { }
+        }
+
 		private void HookGUI(){
 			//m_distictName = UIView.Find<UITextField>("DistrictName");
 			Debug.Print("Hooking");
 			m_panel = (UIPanel)UIView.Find<UITextField>("DistrictName").parent.parent;
-			//m_panel = UIView.Find<UIPanel>("(Library) ZonedBuildingWorldInfoPanel");
-			Debug.Print (m_panel.cachedName);
-			m_demandSprite = (UISlicedSprite)GameObject.Instantiate(UIView.Find<UISlicedSprite> ("DemandBack"));
+            if (m_panel == null)
+            {
+                throw new DistrictRCIException("DistrictRCI couldn't hook GUI");
+            }
 
-			m_demandSprite.name = "DistrictRCIDemand";
-			m_demandSprite.cachedName = "DistrictRCIDemand";
-			m_demandSprite.Show();
+            //m_panel = UIView.Find<UIPanel>("(Library) ZonedBuildingWorldInfoPanel");
+            Debug.Print(m_panel.cachedName);
+            m_demandSprite = (UISlicedSprite)GameObject.Instantiate(UIView.Find<UISlicedSprite>("DemandBack"));
 
-			m_panel.AttachUIComponent(m_demandSprite.gameObject);
-			m_demandSprite.relativePosition = new Vector3(m_panel.width - m_demandSprite.width - 10f,m_panel.height - m_demandSprite.height - 24f);
-			m_panel.eventVisibilityChanged += (component, value) => {Update();};
-			//m_panel.eventAnchorChanged += (component, value) => {Update();};
-			//m_panel.eventPositionChanged += (component, value) => {Update();};
-			//m_panel.eventMouseMove += (component, value) => {Update();};
-			UIView.Find<UITextField> ("DistrictName").eventTextChanged += (component, value) => {Update();};
+            m_demandSprite.name = "DistrictRCIDemand";
+            m_demandSprite.cachedName = "DistrictRCIDemand";
+            m_demandSprite.Show();
+
+            m_panel.AttachUIComponent(m_demandSprite.gameObject);
+            m_demandSprite.relativePosition = new Vector3(m_panel.width - m_demandSprite.width - 10f, m_panel.height - m_demandSprite.height - 24f);
+            m_panel.eventVisibilityChanged += (component, value) => { Update(); };
+            //m_panel.eventAnchorChanged += (component, value) => {Update();};
+            //m_panel.eventPositionChanged += (component, value) => {Update();};
+            //m_panel.eventMouseMove += (component, value) => {Update();};
+            UIView.Find<UITextField>("DistrictName").eventTextChanged += (component, value) => { Update(); };
 		}
 
 		private void Update(){
 			Debug.Print ("Update");
 			Debug.Print (m_demandSprite.absolutePosition);
-
 			Debug.Print (m_panel.absolutePosition);
 			//m_demandSprite.absolutePosition = Vector3.zero;
 			m_demandSprite.relativePosition = new Vector3(m_panel.width - m_demandSprite.width - 10f,m_panel.height - m_demandSprite.height - 24f);
