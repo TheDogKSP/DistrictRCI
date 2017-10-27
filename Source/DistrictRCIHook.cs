@@ -14,6 +14,7 @@ namespace DistrictRCI
 
 		public void OnCreated(ILoading loading){
 			DestroyOld ("DistrictRCIDemand");
+            /*
 			var timer = new Timer (10000); //delays GUI hook so other mods such as Building Themes can do its thing
 			timer.Elapsed += (object sender, ElapsedEventArgs e) => {
 				HookGUI();
@@ -21,6 +22,7 @@ namespace DistrictRCI
 				timer.Dispose();
 			};
 			timer.Enabled = true;
+            */
 		}
 
 		public void OnLevelLoaded(LoadMode mode){
@@ -105,38 +107,48 @@ namespace DistrictRCI
 
 		private int CalculateResidentialDemand(District districtData)
 		{
-			int a1 = (int) districtData.m_commercialData.m_finalHomeOrWorkCount + (int) districtData.m_industrialData.m_finalHomeOrWorkCount + (int) districtData.m_officeData.m_finalHomeOrWorkCount + (int) districtData.m_playerData.m_finalHomeOrWorkCount;
-			int num1 = (int) districtData.m_commercialData.m_finalEmptyCount + (int) districtData.m_industrialData.m_finalEmptyCount + (int) districtData.m_officeData.m_finalEmptyCount + (int) districtData.m_playerData.m_finalEmptyCount;
-			int a2 = (int) districtData.m_residentialData.m_finalHomeOrWorkCount;
-			int num2 = (int) districtData.m_residentialData.m_finalEmptyCount;
-			int num3 = (int) districtData.m_educated0Data.m_finalUnemployed + (int) districtData.m_educated1Data.m_finalUnemployed + (int) districtData.m_educated2Data.m_finalUnemployed + (int) districtData.m_educated3Data.m_finalUnemployed;
-			int num4 = (int) districtData.m_educated0Data.m_finalHomeless + (int) districtData.m_educated1Data.m_finalHomeless + (int) districtData.m_educated2Data.m_finalHomeless + (int) districtData.m_educated3Data.m_finalHomeless;
-			int demand = Mathf.Clamp(100 - a2, 50, 100) + Mathf.Clamp((num1 * 200 - num3 * 200) / Mathf.Max(a1, 100), -50, 50) + Mathf.Clamp((num4 * 200 - num2 * 200) / Mathf.Max(a2, 100), -50, 50);
-			return Mathf.Clamp(demand, 0, 100);
-		}
+            // from ZoneManager
+            int a = (int)(districtData.m_commercialData.m_finalHomeOrWorkCount + districtData.m_industrialData.m_finalHomeOrWorkCount + districtData.m_officeData.m_finalHomeOrWorkCount + districtData.m_playerData.m_finalHomeOrWorkCount);
+            int num = (int)(districtData.m_commercialData.m_finalEmptyCount + districtData.m_industrialData.m_finalEmptyCount + districtData.m_officeData.m_finalEmptyCount + districtData.m_playerData.m_finalEmptyCount);
+            int finalHomeOrWorkCount = (int)districtData.m_residentialData.m_finalHomeOrWorkCount;
+            int finalEmptyCount = (int)districtData.m_residentialData.m_finalEmptyCount;
+            int num2 = (int)(districtData.m_educated0Data.m_finalUnemployed + districtData.m_educated1Data.m_finalUnemployed + districtData.m_educated2Data.m_finalUnemployed + districtData.m_educated3Data.m_finalUnemployed);
+            int num3 = (int)(districtData.m_educated0Data.m_finalHomeless + districtData.m_educated1Data.m_finalHomeless + districtData.m_educated2Data.m_finalHomeless + districtData.m_educated3Data.m_finalHomeless);
+            int num4 = Mathf.Clamp(100 - finalHomeOrWorkCount, 50, 100);
+            num4 += Mathf.Clamp((num * 200 - num2 * 200) / Mathf.Max(a, 100), -50, 50);
+            num4 += Mathf.Clamp((num3 * 200 - finalEmptyCount * 200) / Mathf.Max(finalHomeOrWorkCount, 100), -50, 50);
+            //this.m_DemandWrapper.OnCalculateResidentialDemand(ref num4);
+            return Mathf.Clamp(num4, 0, 100);
+        }
 
 		private int CalculateCommercialDemand(District districtData)
 		{
-			int num1 = (int) districtData.m_commercialData.m_finalHomeOrWorkCount - (int) districtData.m_commercialData.m_finalEmptyCount;
-			int num2 = (int) districtData.m_residentialData.m_finalHomeOrWorkCount - (int) districtData.m_residentialData.m_finalEmptyCount;
-			int a1 = (int) districtData.m_visitorData.m_finalHomeOrWorkCount;
-			int num3 = (int) districtData.m_visitorData.m_finalEmptyCount;
-			int num4 = Mathf.Clamp(num2, 0, 50);
-			int a2 = num1 * 10 * 16 / 100;
-			int num5 = num2 * 20 / 100;
-			int demand = num4 + Mathf.Clamp((num5 * 200 - a2 * 200) / Mathf.Max(a2, 100), -50, 50) + Mathf.Clamp((a1 * 100 - num3 * 300) / Mathf.Max(a1, 100), -50, 50);
-			return Mathf.Clamp(demand, 0, 100);
-		}
+            // from ZoneManager
+            int num = (int)(districtData.m_commercialData.m_finalHomeOrWorkCount - districtData.m_commercialData.m_finalEmptyCount);
+            int num2 = (int)(districtData.m_residentialData.m_finalHomeOrWorkCount - districtData.m_residentialData.m_finalEmptyCount);
+            int finalHomeOrWorkCount = (int)districtData.m_visitorData.m_finalHomeOrWorkCount;
+            int finalEmptyCount = (int)districtData.m_visitorData.m_finalEmptyCount;
+            int num3 = Mathf.Clamp(num2, 0, 50);
+            num = num * 10 * 16 / 100;
+            num2 = num2 * 20 / 100;
+            num3 += Mathf.Clamp((num2 * 200 - num * 200) / Mathf.Max(num, 100), -50, 50);
+            num3 += Mathf.Clamp((finalHomeOrWorkCount * 100 - finalEmptyCount * 300) / Mathf.Max(finalHomeOrWorkCount, 100), -50, 50);
+            //this.m_DemandWrapper.OnCalculateCommercialDemand(ref num3);
+            return Mathf.Clamp(num3, 0, 100);
+        }
 
 		private int CalculateWorkplaceDemand(District districtData)
 		{
-			int num1 = (int) districtData.m_residentialData.m_finalHomeOrWorkCount - (int) districtData.m_residentialData.m_finalEmptyCount;
-			int a = (int) districtData.m_commercialData.m_finalHomeOrWorkCount + (int) districtData.m_industrialData.m_finalHomeOrWorkCount + (int) districtData.m_officeData.m_finalHomeOrWorkCount + (int) districtData.m_playerData.m_finalHomeOrWorkCount;
-			int num2 = (int) districtData.m_commercialData.m_finalEmptyCount + (int) districtData.m_industrialData.m_finalEmptyCount + (int) districtData.m_officeData.m_finalEmptyCount + (int) districtData.m_playerData.m_finalEmptyCount;
-			int num3 = (int) districtData.m_educated0Data.m_finalUnemployed + (int) districtData.m_educated1Data.m_finalUnemployed + (int) districtData.m_educated2Data.m_finalUnemployed + (int) districtData.m_educated3Data.m_finalUnemployed;
-			int demand = Mathf.Clamp(num1, 0, 50) + Mathf.Clamp((num3 * 200 - num2 * 200) / Mathf.Max(a, 100), -50, 50);
-			return Mathf.Clamp(demand, 0, 100);
-		}
+            // from ZoneManager
+            int value = (int)(districtData.m_residentialData.m_finalHomeOrWorkCount - districtData.m_residentialData.m_finalEmptyCount);
+            int a = (int)(districtData.m_commercialData.m_finalHomeOrWorkCount + districtData.m_industrialData.m_finalHomeOrWorkCount + districtData.m_officeData.m_finalHomeOrWorkCount + districtData.m_playerData.m_finalHomeOrWorkCount);
+            int num = (int)(districtData.m_commercialData.m_finalEmptyCount + districtData.m_industrialData.m_finalEmptyCount + districtData.m_officeData.m_finalEmptyCount + districtData.m_playerData.m_finalEmptyCount);
+            int num2 = (int)(districtData.m_educated0Data.m_finalUnemployed + districtData.m_educated1Data.m_finalUnemployed + districtData.m_educated2Data.m_finalUnemployed + districtData.m_educated3Data.m_finalUnemployed);
+            int num3 = Mathf.Clamp(value, 0, 50);
+            num3 += Mathf.Clamp((num2 * 200 - num * 200) / Mathf.Max(a, 100), -50, 50);
+            //this.m_DemandWrapper.OnCalculateWorkplaceDemand(ref num3);
+            return Mathf.Clamp(num3, 0, 100);
+        }
 
 		//private District GetDistrict(string name){
 		private District GetDistrict(){
@@ -163,7 +175,7 @@ namespace DistrictRCI
 		public void OnReleased(){
 			Debug.Print ("Released");
 			try{
-			m_panel.RemoveUIComponent (m_demandSprite);
+			    m_panel.RemoveUIComponent (m_demandSprite);
 			}catch{
 			
 			}
