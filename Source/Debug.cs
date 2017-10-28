@@ -4,10 +4,14 @@ using ColossalFramework;
 namespace DistrictRCI
 {
 	public class Debug{
-		static bool  DEBUG = false;
-		public static void Print(object obj){
+#if DEBUG
+        static bool DEBUG = true;
+#else
+        static bool  DEBUG = false;
+#endif
+        public static void Print(object obj){
 			if(DEBUG){
-                DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Message, "[DistrictRCI] "+obj.ToString());
+                CODebug.Log(LogChannel.Modding, "[DistrictRCI] "+obj.ToString());
 			}
 		}
 	}
