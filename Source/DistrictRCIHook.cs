@@ -214,7 +214,7 @@ namespace DistrictRCI
             rciPanel = rciGO.AddComponent<DistrictRCIPanel>();
             rciPanel.m_demandSprite = (UISlicedSprite)GameObject.Instantiate(UIView.Find<UISlicedSprite>("DemandBack"));
 
-            if (m_DistrictWIP == null || m_UIPanel == null || rciPanel.m_demandSprite == null)
+            if (m_DistrictWIP == null || m_UIPanel == null || rciPanel == null || rciPanel.m_demandSprite == null)
             {
                 throw new DistrictRCIException("DistrictRCI couldn't hook GUI");
             }
@@ -222,14 +222,17 @@ namespace DistrictRCI
             rciPanel.m_demandSprite.name = "DistrictRCIDemand_sprite";
             rciPanel.m_demandSprite.cachedName = "DistrictRCIDemand_sprite";
 
-            m_UIPanel.AttachUIComponent(rciPanel.m_demandSprite.gameObject); //attach demand sprite directly to original UI panel
-            rciPanel.m_demandSprite.relativePosition = new Vector3(m_UIPanel.width - rciPanel.m_demandSprite.width - 10f, m_UIPanel.height - rciPanel.m_demandSprite.height - 24f);
+            rciPanel.size = new Vector2(rciPanel.m_demandSprite.width, rciPanel.m_demandSprite.height);
+
+            rciPanel.AttachUIComponent(rciPanel.m_demandSprite.gameObject);
+            rciPanel.m_demandSprite.relativePosition = new Vector3(m_UIPanel.width-rciPanel.size.x - 10, m_UIPanel.height-rciPanel.size.y - 80);
             rciPanel.m_demandSprite.Show();
 
-            // custom panel only for triggering, always hide off-screen
-            rciPanel.size = new Vector2(0, 0);
-            rciPanel.transform.position = new Vector3(-10, 0, -10);
-            rciPanel.Hide();
+            m_UIPanel.AttachUIComponent(rciGO); //attach demand sprite directly to original UI panel
+            rciPanel.relativePosition = new Vector3(0, 0);
+            rciPanel.Show();
+
+            // custom panel only for triggering
             m_UIPanel.eventVisibilityChanged += (component, value) => { rciPanel.OnVisibilityChanged(component, value); };
             m_UIPanel.eventPositionChanged += (component, value) => { rciPanel.OnPositionChanged(component, value); };
         }
@@ -238,7 +241,8 @@ namespace DistrictRCI
 			Debug.Print ("Released");
 			try{
                 if (m_UIPanel != null && rciPanel != null)
-			        m_UIPanel.RemoveUIComponent (rciPanel.m_demandSprite);
+                    rciPanel.RemoveUIComponent (rciPanel.m_demandSprite);
+                m_UIPanel.RemoveUIComponent(rciPanel);
 			}catch{			
 			}
 		}

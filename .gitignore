@@ -30,3 +30,7 @@ obj/Release/DistrictRCI.csproj.CoreCompileInputs.cache
 obj/Release/DistrictRCI.csproj.FileListAbsolute.txt
 obj/Release/DistrictRCI.dll
 obj/Release/DistrictRCI.pdb
+.vs/DistrictRCI/v15/Server/sqlite3/db.lock
+.vs/DistrictRCI/v15/Server/sqlite3/storage.ide
+.vs/DistrictRCI/v15/sqlite3/db.lock
+obj/Release/DesignTimeResolveAssemblyReferencesInput.cache
